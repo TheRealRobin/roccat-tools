@@ -478,8 +478,20 @@ static gchar *window_get_process_name(RoccatWindowMonitor *monitor, Window windo
 static int error_handler(Display *display, XErrorEvent *event) {
 	if (event->error_code == BadWindow)
 		return 0;
+	/*
+	 * HACK:
+	 * Check if the "old" error handler is this exact "error_handler" function.
+	 * On some systems, such as NixOS, for really strange unknown reasons this
+	 * function might recusively loop until the end of time. In that case, the
+	 * whole driver will become unresponsive, not update the settings and freeze 
+	 * the configuration GUI.
+	 * My workaround for this is: "if we are in the infinite loop, e.g. the old
+	 * error handler function pointer is the same as the pointer to this exact
+	 * function, just abort the error handling and return 0"
+	 */
 	if (old_error_handler == &error_handler)
 		return 0;
+	/* else, use the normal behavior */
 	return old_error_handler(display, event);
 }
 
