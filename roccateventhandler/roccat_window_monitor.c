@@ -478,6 +478,8 @@ static gchar *window_get_process_name(RoccatWindowMonitor *monitor, Window windo
 static int error_handler(Display *display, XErrorEvent *event) {
 	if (event->error_code == BadWindow)
 		return 0;
+	if (old_error_handler == &error_handler)
+		return 0;
 	return old_error_handler(display, event);
 }
 
